@@ -11,6 +11,8 @@ Real-time GPU, system, and tmux monitoring dashboard for remote machines via SSH
    └── ssh server-n → GPU, CPU, RAM, tmux sessions
 ```
 
+![dennou dashboard](docs/screenshot.png)
+
 ## Features
 
 - **GPU metrics** — utilization, temperature, memory, power draw via `nvidia-smi`
@@ -86,7 +88,7 @@ dennou/
   system.py         System metrics collector (CPU, RAM, load)
   tmux.py           Tmux session collector (sessions, windows, panes)
 web/
-  index.html        Cyberpunk dashboard (HTML + CSS + JS, Catppuccin Mocha)
+  index.html
 ```
 
 Maintains persistent SSH connections via `asyncssh` and runs all collectors concurrently per machine.

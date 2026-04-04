@@ -1,13 +1,23 @@
 """Entry point: python -m dennou"""
 
+import sys
 import uvicorn
 
 from dennou.config import load_config
-from dennou.server import app
 
 
 def main():
-    cfg = load_config()
+    try:
+        cfg = load_config()
+    except FileNotFoundError:
+        print("Error: config.yaml not found. Copy config.yaml.example to config.yaml and edit it.", file=sys.stderr)
+        sys.exit(1)
+    except Exception as e:
+        print(f"Error loading config.yaml: {e}", file=sys.stderr)
+        sys.exit(1)
+
+    from dennou.server import app, init
+    init(cfg)
     uvicorn.run(app, host=cfg["host"], port=cfg["port"], log_level="info")
 
 

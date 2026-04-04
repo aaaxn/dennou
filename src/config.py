@@ -9,7 +9,7 @@ _DEFAULT_SETTINGS = {
     "poll_interval": 3,
     "tmux_capture_lines": 25,
     "port": 1312,
-    "host": "0.0.0.0",
+    "host": "127.0.0.1",
 }
 
 
@@ -23,7 +23,6 @@ def load_config(path: str | Path | None = None) -> dict:
     with open(path) as f:
         raw = yaml.safe_load(f) or {}
 
-    # --- machines ---
     machines = {}
     for name, mcfg in (raw.get("machines") or {}).items():
         mcfg = mcfg or {}
@@ -33,8 +32,10 @@ def load_config(path: str | Path | None = None) -> dict:
             "port": int(mcfg.get("port", 22)),
         }
 
-    # --- settings (merged with defaults) ---
     settings = {**_DEFAULT_SETTINGS, **(raw.get("settings") or {})}
+    settings["port"] = int(settings["port"])
+    settings["poll_interval"] = int(settings["poll_interval"])
+    settings["tmux_capture_lines"] = int(settings["tmux_capture_lines"])
 
     return {
         "machines": machines,

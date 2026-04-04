@@ -15,4 +15,4 @@ settings:
   poll_interval: 3         # seconds between SSH polls
   tmux_capture_lines: 25   # lines to capture from each tmux pane
   port: 1312               # web dashboard port
-  host: 0.0.0.0            # listen address
+  host: 127.0.0.1           # listen address (use 0.0.0.0 to expose on network)

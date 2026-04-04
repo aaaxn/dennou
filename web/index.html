@@ -7,10 +7,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
-/* ── Reset & Catppuccin Mocha ─────────────────────────────── */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 :root {
-  /* Catppuccin Mocha */
   --crust:     #11111b;
   --mantle:    #181825;
   --base:      #1e1e2e;
@@ -38,7 +36,6 @@
   --flamingo:  #f2cdcd;
   --rosewater: #f5e0dc;
 
-  /* Semantic */
   --bg:        var(--crust);
   --bg-card:   var(--base);
   --bg-elev:   var(--surface0);
@@ -64,7 +61,6 @@ body {
   position: relative;
 }
 
-/* ── Scanlines Overlay ─────────────────────────────────────── */
 body::before {
   content: '';
   position: fixed;
@@ -80,7 +76,6 @@ body::before {
   z-index: 9999;
 }
 
-/* ── Grid Background ──────────────────────────────────────── */
 body::after {
   content: '';
   position: fixed;
@@ -95,12 +90,10 @@ body::after {
 
 a { color: var(--accent); text-decoration: none; }
 
-/* Custom scrollbar */
 ::-webkit-scrollbar { width: 4px; height: 4px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: var(--surface1); border-radius: 0; }
 
-/* ── Layout ───────────────────────────────────────────────── */
 .app { display: flex; min-height: 100vh; position: relative; z-index: 1; }
 
 .sidebar {
@@ -184,10 +177,9 @@ a { color: var(--accent); text-decoration: none; }
   flex: 1;
   margin-left: 56px;
   padding: 24px 28px 48px;
-  max-width: 1440px;
+  max-width: 1920px;
 }
 
-/* ── Header ───────────────────────────────────────────────── */
 .header {
   display: flex;
   align-items: center;
@@ -260,10 +252,9 @@ a { color: var(--accent); text-decoration: none; }
   50% { box-shadow: 0 0 16px rgba(166, 227, 161, .6); }
 }
 
-/* ── Machine Grid ─────────────────────────────────────────── */
 .machine-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(440px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(440px, 1fr));
   gap: 16px;
 }
 
@@ -278,7 +269,6 @@ a { color: var(--accent); text-decoration: none; }
 .machine-card:hover {
   border-color: var(--border-glow);
 }
-/* Corner accent marks */
 .machine-card::before {
   content: '';
   position: absolute;
@@ -345,7 +335,6 @@ a { color: var(--accent); text-decoration: none; }
 
 .machine-body { padding: 12px 16px; }
 
-/* ── GPU Row ──────────────────────────────────────────────── */
 .gpu-section { margin-bottom: 10px; }
 .gpu-row {
   display: flex;
@@ -405,7 +394,6 @@ a { color: var(--accent); text-decoration: none; }
   margin-top: 2px;
 }
 
-/* Bars */
 .bar-wrap {
   width: 100%;
   height: 2px;
@@ -421,7 +409,6 @@ a { color: var(--accent); text-decoration: none; }
   position: relative;
 }
 
-/* Color coding — Catppuccin colors */
 .c-util  { color: var(--blue); }
 .c-temp  { color: var(--peach); }
 .c-mem   { color: var(--sapphire); }
@@ -433,7 +420,6 @@ a { color: var(--accent); text-decoration: none; }
 .c-warn   { color: var(--yellow); }
 .c-danger { color: var(--red); text-shadow: 0 0 8px rgba(243, 139, 168, .4); }
 
-/* ── System Metrics Row ───────────────────────────────────── */
 .sys-row {
   display: flex;
   gap: 20px;
@@ -479,7 +465,6 @@ a { color: var(--accent); text-decoration: none; }
   box-shadow: 0 0 8px rgba(116, 199, 236, .3);
 }
 
-/* ── Tmux Section ─────────────────────────────────────────── */
 .tmux-section { margin-top: 10px; }
 .tmux-header {
   display: flex;
@@ -617,7 +602,6 @@ a { color: var(--accent); text-decoration: none; }
   margin: 0;
 }
 
-/* ── Loading / Empty ──────────────────────────────────────── */
 .empty-state {
   display: flex;
   flex-direction: column;
@@ -644,7 +628,6 @@ a { color: var(--accent); text-decoration: none; }
   text-transform: uppercase;
 }
 
-/* ── Glitch Effect on Title ───────────────────────────────── */
 @keyframes glitch-skew {
   0% { transform: skew(0deg); }
   20% { transform: skew(-1deg); }
@@ -658,7 +641,6 @@ a { color: var(--accent); text-decoration: none; }
   animation: glitch-skew 8s ease-in-out infinite alternate;
 }
 
-/* ── Status indicator bar at top ──────────────────────────── */
 .status-bar {
   position: fixed;
   top: 0; left: 56px; right: 0;
@@ -680,7 +662,6 @@ a { color: var(--accent); text-decoration: none; }
   100% { background-position: 200% 0; }
 }
 
-/* ── Floating ambient particles (CSS only) ────────────────── */
 .particles {
   position: fixed;
   inset: 0;
@@ -703,7 +684,6 @@ a { color: var(--accent); text-decoration: none; }
   100% { opacity: 0; transform: translateY(-20px) translateX(30px); }
 }
 
-/* ── Footer status line ───────────────────────────────────── */
 .footer-status {
   position: fixed;
   bottom: 0; left: 56px; right: 0;
@@ -733,7 +713,6 @@ a { color: var(--accent); text-decoration: none; }
 }
 .footer-tag .accent { color: var(--accent); }
 
-/* ── Responsive ───────────────────────────────────────────── */
 @media (max-width: 600px) {
   .main { padding: 12px; margin-left: 44px; }
   .sidebar { width: 44px; }
@@ -748,14 +727,11 @@ a { color: var(--accent); text-decoration: none; }
 </head>
 <body>
 
-<!-- Ambient particles -->
 <div class="particles" id="particles"></div>
 
-<!-- Status sweep bar -->
 <div class="status-bar"></div>
 
 <div class="app">
-  <!-- Sidebar -->
   <aside class="sidebar">
     <div class="sidebar-logo">◈ 電脳</div>
     <nav class="sidebar-nav" id="sidebar-nav">
@@ -763,7 +739,6 @@ a { color: var(--accent); text-decoration: none; }
     </nav>
   </aside>
 
-  <!-- Main -->
   <div class="main">
     <div class="header">
       <div class="header-left">
@@ -785,7 +760,6 @@ a { color: var(--accent); text-decoration: none; }
   </div>
 </div>
 
-<!-- Footer status bar -->
 <div class="footer-status">
   <span class="footer-tag"><span class="accent">◈</span> DENNOU 電脳 v1.0</span>
   <span class="footer-tag" id="footer-machine-count">0 NODES</span>
@@ -794,7 +768,6 @@ a { color: var(--accent); text-decoration: none; }
 </div>
 
 <script>
-/* ── Particles ────────────────────────────────────────── */
 (function initParticles() {
   const container = document.getElementById('particles');
   for (let i = 0; i < 20; i++) {
@@ -809,7 +782,6 @@ a { color: var(--accent); text-decoration: none; }
   }
 })();
 
-/* ── Footer clock ─────────────────────────────────────── */
 function updateClock() {
   const now = new Date();
   const h = String(now.getHours()).padStart(2, '0');
@@ -820,14 +792,12 @@ function updateClock() {
 setInterval(updateClock, 1000);
 updateClock();
 
-/* ── State ─────────────────────────────────────────────── */
 let ws = null;
 let state = {};
 let currentView = 'all';
 let openTmux = {};
 let openWindows = {};
 
-/* ── WebSocket ─────────────────────────────────────────── */
 function connect() {
   const proto = location.protocol === 'https:' ? 'wss:' : 'ws:';
   ws = new WebSocket(proto + '//' + location.host + '/ws');
@@ -848,16 +818,19 @@ function connect() {
   };
 
   ws.onmessage = (e) => {
-    const data = JSON.parse(e.data);
-    state = data.machines || {};
-    render();
-    updateSidebar();
-    updateFooter();
+    try {
+      const data = JSON.parse(e.data);
+      state = data.machines || {};
+      render();
+      updateSidebar();
+      updateFooter();
+    } catch (err) {
+      console.error('Failed to parse message:', err);
+    }
   };
 }
 connect();
 
-/* ── Footer stats ─────────────────────────────────────── */
 function updateFooter() {
   const machines = Object.keys(state);
   let gpuCount = 0;
@@ -869,7 +842,6 @@ function updateFooter() {
   document.getElementById('footer-gpu-count').textContent = gpuCount + ' GPU' + (gpuCount !== 1 ? 'S' : '');
 }
 
-/* ── Sidebar ───────────────────────────────────────────── */
 function updateSidebar() {
   const nav = document.getElementById('sidebar-nav');
   const names = Object.keys(state);
@@ -904,7 +876,6 @@ function switchView(view) {
   render();
 }
 
-/* ── Rendering ─────────────────────────────────────────── */
 function render() {
   const container = document.getElementById('content');
   const machines = currentView === 'all'
@@ -916,29 +887,76 @@ function render() {
     return;
   }
 
-  container.innerHTML = '<div class="machine-grid">' +
-    machines.map(([name, data]) => renderMachine(name, data)).join('') +
-    '</div>';
+  let grid = container.querySelector('.machine-grid');
+  if (!grid) {
+    container.innerHTML = '<div class="machine-grid"></div>';
+    grid = container.querySelector('.machine-grid');
+  }
+
+  const wantedNames = new Set(machines.map(([n]) => n));
+
+  grid.querySelectorAll('.machine-card').forEach(card => {
+    if (!wantedNames.has(card.dataset.machine)) card.remove();
+  });
+
+  machines.forEach(([name, data]) => {
+    const html = renderMachine(name, data);
+    const existing = grid.querySelector(`.machine-card[data-machine="${name}"]`);
+    if (existing) {
+      // Preserve open tmux pane state by only updating if content changed
+      if (existing._lastHtml !== html) {
+        const openPanes = new Set();
+        existing.querySelectorAll('.tmux-pane.open').forEach(p => {
+          const key = p.previousElementSibling?.dataset?.key;
+          if (key) openPanes.add(key);
+        });
+        const openSessions = new Set();
+        existing.querySelectorAll('.tmux-windows.open').forEach(w => {
+          const key = w.previousElementSibling?.dataset?.key;
+          if (key) openSessions.add(key);
+        });
+
+        existing.outerHTML = html;
+        const updated = grid.querySelector(`.machine-card[data-machine="${name}"]`);
+        updated._lastHtml = html;
+
+        // Restore open state
+        openSessions.forEach(key => {
+          const wins = updated.querySelector(`.tmux-windows[data-session="${key}"]`) ||
+                       updated.querySelector(`[data-key="${key}"]`)?.nextElementSibling;
+          if (wins) wins.classList.add('open');
+        });
+        openPanes.forEach(key => {
+          const hdr = updated.querySelector(`[data-key="${key}"]`);
+          if (hdr?.nextElementSibling) hdr.nextElementSibling.classList.add('open');
+        });
+      }
+    } else {
+      grid.insertAdjacentHTML('beforeend', html);
+      const inserted = grid.querySelector(`.machine-card[data-machine="${name}"]`);
+      if (inserted) inserted._lastHtml = html;
+    }
+  });
 }
 
 function renderMachine(name, data) {
   const status = data.status || 'offline';
 
   if (status !== 'online') {
-    return `<div class="machine-card">
+    return `<div class="machine-card" data-machine="${esc(name)}">
       <div class="machine-header">
         <span class="machine-name">${esc(name)}</span>
         <span class="machine-status ${status}">${status}</span>
       </div>
       <div class="machine-body">
         <div style="padding:24px 0;text-align:center;color:var(--overlay0);font-family:var(--font);font-size:11px;letter-spacing:1px;">
-          ${status === 'offline' ? '◇ SSH LINK FAILED' : '◇ ' + esc(data.error || 'UNKNOWN ERROR')}
+          ${status === 'offline' ? '◇ SSH LINK FAILED' : '◇ COLLECTION ERROR'}
         </div>
       </div>
     </div>`;
   }
 
-  return `<div class="machine-card">
+  return `<div class="machine-card" data-machine="${esc(name)}">
     <div class="machine-header">
       <span class="machine-name">${esc(name)}</span>
       <span class="machine-status online">online</span>
@@ -951,7 +969,6 @@ function renderMachine(name, data) {
   </div>`;
 }
 
-/* ── GPU ───────────────────────────────────────────────── */
 function renderGPUs(gpus) {
   if (!gpus.length) return '<div style="padding:8px 0;font-family:var(--font);font-size:10px;color:var(--overlay0);letter-spacing:1px">▹ NO GPU DETECTED</div>';
 
@@ -994,7 +1011,6 @@ function renderGPUs(gpus) {
   }).join('') + '</div>';
 }
 
-/* ── System ────────────────────────────────────────────── */
 function renderSystem(sys) {
   const cpuPct = sys.cpu_percent ?? null;
   const memPct = sys.mem_percent ?? 0;
@@ -1023,7 +1039,6 @@ function renderSystem(sys) {
   </div>`;
 }
 
-/* ── Tmux ──────────────────────────────────────────────── */
 function renderTmux(machine, sessions) {
   if (!sessions.length) return '';
 
@@ -1075,7 +1090,6 @@ function renderTmuxWindow(machine, sessionName, win) {
   </div>`;
 }
 
-/* ── Toggle helpers ────────────────────────────────────── */
 document.addEventListener('click', e => {
   const el = e.target.closest('[data-toggle]');
   if (!el) return;
@@ -1091,7 +1105,6 @@ document.addEventListener('click', e => {
   render();
 });
 
-/* ── Utilities ─────────────────────────────────────────── */
 function esc(s) {
   if (s == null) return '';
   const d = document.createElement('div');

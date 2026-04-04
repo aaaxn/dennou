@@ -10,11 +10,8 @@ from pathlib import Path
 from fastapi import FastAPI, WebSocket
 from fastapi.responses import HTMLResponse
 
-from dennou.config import load_config
 from dennou.ssh import get_conn, drop_conn, close_all, ConnectionDead
 from dennou import gpu, system, tmux
-
-# ── Logging ──────────────────────────────────────────────────────────────────
 
 logging.basicConfig(
     level=logging.INFO,
@@ -25,12 +22,14 @@ logger = logging.getLogger("dennou")
 # Silence verbose asyncssh per-channel logging
 logging.getLogger("asyncssh").setLevel(logging.WARNING)
 
-# ── Config ───────────────────────────────────────────────────────────────────
+cfg: dict = {}
 
-cfg = load_config()
-logger.info(f"Monitoring {len(cfg['machines'])} machine(s): {list(cfg['machines'].keys())}")
 
-# ── Collector ────────────────────────────────────────────────────────────────
+def init(config: dict):
+    """Initialise module with loaded config."""
+    global cfg
+    cfg = config
+    logger.info(f"Monitoring {len(cfg['machines'])} machine(s): {list(cfg['machines'].keys())}")
 
 
 async def collect_machine(machine_name: str, machine_cfg: dict, tmux_lines: int = 25) -> dict:
@@ -60,16 +59,14 @@ async def collect_machine(machine_name: str, machine_cfg: dict, tmux_lines: int 
 
     except ConnectionDead:
         logger.warning(f"[{machine_name}] connection dead, will reconnect next cycle")
-        drop_conn(machine_name)
+        await drop_conn(machine_name)
         return {"status": "offline"}
 
     except Exception as e:
         logger.error(f"[{machine_name}] collection error: {e}")
-        drop_conn(machine_name)
-        return {"status": "error", "error": str(e)}
+        await drop_conn(machine_name)
+        return {"status": "error"}
 
-
-# ── WebSocket real-time loop ─────────────────────────────────────────────────
 
 clients: set[WebSocket] = set()
 _poll_task: asyncio.Task | None = None
@@ -94,7 +91,7 @@ async def poll_loop():
         payload = {}
         for name, result in zip(tasks.keys(), results):
             if isinstance(result, Exception):
-                payload[name] = {"status": "error", "error": str(result)}
+                payload[name] = {"status": "error"}
             else:
                 payload[name] = result
 
@@ -132,9 +129,6 @@ def _on_poll_done(task: asyncio.Task):
     exc = task.exception()
     if exc:
         logger.error(f"poll_loop crashed: {exc}", exc_info=exc)
-
-
-# ── FastAPI ──────────────────────────────────────────────────────────────────
 
 
 @asynccontextmanager

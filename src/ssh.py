@@ -30,7 +30,6 @@ async def get_conn(machine_name: str, machine_cfg: dict) -> asyncssh.SSHClientCo
                     machine_cfg["host"],
                     port=machine_cfg["port"],
                     username=machine_cfg["user"],
-                    known_hosts=None,
                 ),
                 timeout=15,
             )
@@ -42,12 +41,13 @@ async def get_conn(machine_name: str, machine_cfg: dict) -> asyncssh.SSHClientCo
             return None
 
 
-def drop_conn(machine_name: str):
+async def drop_conn(machine_name: str):
     """Drop a dead connection so the next poll reconnects."""
     conn = _connections.pop(machine_name, None)
     if conn:
         try:
             conn.close()
+            await conn.wait_closed()
         except Exception:
             pass
 
@@ -72,6 +72,7 @@ async def close_all():
     for name, conn in list(_connections.items()):
         try:
             conn.close()
+            await conn.wait_closed()
         except Exception:
             pass
     _connections.clear()
