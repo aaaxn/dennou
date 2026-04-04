@@ -36,7 +36,7 @@ cp config.yaml.example config.yaml
 vim config.yaml  # add your machines
 
 # Run
-uv run python app.py
+uv run python -m dennou
 ```
 
 Open **http://localhost:1312**
@@ -77,14 +77,19 @@ ssh my-server nvidia-smi  # test
 ## Architecture
 
 ```
-app.py              FastAPI server + WebSocket
-core/
+dennou/
+  __main__.py       Entry point (python -m dennou)
+  server.py         FastAPI server + WebSocket real-time loop
   config.py         YAML config loader
-  collectors.py     SSH connection pool + data collectors (GPU, system, tmux)
-index.html          Single-file cyberpunk dashboard (HTML + CSS + JS)
+  ssh.py            SSH connection pool + command runner
+  gpu.py            GPU metrics collector (nvidia-smi)
+  system.py         System metrics collector (CPU, RAM, load)
+  tmux.py           Tmux session collector (sessions, windows, panes)
+web/
+  index.html        Cyberpunk dashboard (HTML + CSS + JS, Catppuccin Mocha)
 ```
 
-Maintains persistent SSH connections via `asyncssh` and runs all collection concurrently per machine.
+Maintains persistent SSH connections via `asyncssh` and runs all collectors concurrently per machine.
 
 ## License
 

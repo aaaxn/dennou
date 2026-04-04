@@ -1,7 +1,7 @@
 [project]
 name = "dennou"
 version = "0.1.0"
-description = "SSH-based GPU, system, and tmux monitoring dashboard"
+description = "電脳 — SSH-based GPU, system, and tmux monitoring dashboard"
 requires-python = ">=3.12"
 dependencies = [
     "asyncssh>=2.22.0",
@@ -10,3 +10,6 @@ dependencies = [
     "uvicorn>=0.43.0",
     "websockets>=16.0",
 ]
+
+[project.scripts]
+dennou = "dennou.__main__:main"

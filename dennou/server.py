@@ -1,25 +1,18 @@
-#!/usr/bin/env python3
-"""
-dennou (電脳) — SSH-based GPU + tmux monitoring dashboard.
-
-Run on your local machine. Connects to remote machines via SSH.
-Zero installation on remote hosts.
-
-Usage:
-    uv run python app.py
-"""
+"""dennou (電脳) — FastAPI server + WebSocket real-time loop."""
 
 import asyncio
 import json
 import logging
+import time
 from contextlib import asynccontextmanager
 from pathlib import Path
 
 from fastapi import FastAPI, WebSocket
 from fastapi.responses import HTMLResponse
 
-from core.config import load_config
-from core.collectors import collect_machine, close_all
+from dennou.config import load_config
+from dennou.ssh import get_conn, drop_conn, close_all, ConnectionDead
+from dennou import gpu, system, tmux
 
 # ── Logging ──────────────────────────────────────────────────────────────────
 
@@ -37,6 +30,45 @@ logging.getLogger("asyncssh").setLevel(logging.WARNING)
 cfg = load_config()
 logger.info(f"Monitoring {len(cfg['machines'])} machine(s): {list(cfg['machines'].keys())}")
 
+# ── Collector ────────────────────────────────────────────────────────────────
+
+
+async def collect_machine(machine_name: str, machine_cfg: dict, tmux_lines: int = 25) -> dict:
+    """Collect all metrics from a single machine."""
+    conn = await get_conn(machine_name, machine_cfg)
+    if conn is None:
+        return {"status": "offline"}
+
+    try:
+        gpus, sys_info, tmux_sessions = await asyncio.gather(
+            gpu.collect(conn),
+            system.collect(conn),
+            tmux.collect(conn, tmux_lines),
+        )
+
+        cpu_pct = system.compute_cpu_percent(machine_name, sys_info)
+        if cpu_pct is not None:
+            sys_info["cpu_percent"] = cpu_pct
+
+        return {
+            "status": "online",
+            "gpus": gpus,
+            "system": sys_info,
+            "tmux": tmux_sessions,
+            "timestamp": time.time(),
+        }
+
+    except ConnectionDead:
+        logger.warning(f"[{machine_name}] connection dead, will reconnect next cycle")
+        drop_conn(machine_name)
+        return {"status": "offline"}
+
+    except Exception as e:
+        logger.error(f"[{machine_name}] collection error: {e}")
+        drop_conn(machine_name)
+        return {"status": "error", "error": str(e)}
+
+
 # ── WebSocket real-time loop ─────────────────────────────────────────────────
 
 clients: set[WebSocket] = set()
@@ -52,7 +84,6 @@ async def poll_loop():
     while True:
         await _has_clients.wait()
 
-        # Collect from all machines concurrently
         machines = cfg["machines"]
         tasks = {
             name: collect_machine(name, mcfg, tmux_lines)
@@ -69,7 +100,6 @@ async def poll_loop():
 
         message = json.dumps({"machines": payload})
 
-        # Broadcast concurrently, collect dead clients
         async def _send(ws: WebSocket) -> WebSocket | None:
             try:
                 await ws.send_text(message)
@@ -113,11 +143,12 @@ async def lifespan(app):
     if _poll_task and not _poll_task.done():
         _poll_task.cancel()
     await close_all()
+    system.clear_state()
 
 
 app = FastAPI(title="dennou", lifespan=lifespan)
 
-TEMPLATE = Path(__file__).parent / "index.html"
+TEMPLATE = Path(__file__).parent.parent / "web" / "index.html"
 
 
 @app.get("/")
@@ -134,18 +165,10 @@ async def ws_endpoint(websocket: WebSocket):
 
     try:
         while True:
-            await websocket.receive_text()  # keep-alive
+            await websocket.receive_text()
     except Exception:
         pass
     finally:
         clients.discard(websocket)
         if not clients:
             _has_clients.clear()
-
-
-# ── Entry point ──────────────────────────────────────────────────────────────
-
-if __name__ == "__main__":
-    import uvicorn
-
-    uvicorn.run(app, host=cfg["host"], port=cfg["port"], log_level="info")
