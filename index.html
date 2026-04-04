@@ -1,0 +1,1114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>◈ DENNOU 電脳 — Neural Grid</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* ── Reset & Catppuccin Mocha ─────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  /* Catppuccin Mocha */
+  --crust:     #11111b;
+  --mantle:    #181825;
+  --base:      #1e1e2e;
+  --surface0:  #313244;
+  --surface1:  #45475a;
+  --surface2:  #585b70;
+  --overlay0:  #6c7086;
+  --overlay1:  #7f849c;
+  --overlay2:  #9399b2;
+  --subtext0:  #a6adc8;
+  --subtext1:  #bac2de;
+  --text:      #cdd6f4;
+  --lavender:  #b4befe;
+  --blue:      #89b4fa;
+  --sapphire:  #74c7ec;
+  --sky:       #89dceb;
+  --teal:      #94e2d5;
+  --green:     #a6e3a1;
+  --yellow:    #f9e2af;
+  --peach:     #fab387;
+  --maroon:    #eba0ac;
+  --red:       #f38ba8;
+  --mauve:     #cba6f7;
+  --pink:      #f5c2e7;
+  --flamingo:  #f2cdcd;
+  --rosewater: #f5e0dc;
+
+  /* Semantic */
+  --bg:        var(--crust);
+  --bg-card:   var(--base);
+  --bg-elev:   var(--surface0);
+  --bg-term:   #0c0c14;
+  --border:    rgba(205, 214, 244, .06);
+  --border-glow: rgba(250, 179, 135, .15);
+  --accent:    var(--peach);
+  --accent-glow: rgba(250, 179, 135, .4);
+
+  --font:      'JetBrains Mono', 'SF Mono', 'Cascadia Code', monospace;
+  --font-ui:   'Rajdhani', 'Share Tech', sans-serif;
+  --radius:    2px;
+}
+
+html { font-size: 14px; }
+
+body {
+  font-family: var(--font-ui);
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  overflow-x: hidden;
+  position: relative;
+}
+
+/* ── Scanlines Overlay ─────────────────────────────────────── */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0, 0, 0, .08) 2px,
+    rgba(0, 0, 0, .08) 4px
+  );
+  pointer-events: none;
+  z-index: 9999;
+}
+
+/* ── Grid Background ──────────────────────────────────────── */
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(250, 179, 135, .015) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(250, 179, 135, .015) 1px, transparent 1px);
+  background-size: 60px 60px;
+  pointer-events: none;
+  z-index: 0;
+}
+
+a { color: var(--accent); text-decoration: none; }
+
+/* Custom scrollbar */
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--surface1); border-radius: 0; }
+
+/* ── Layout ───────────────────────────────────────────────── */
+.app { display: flex; min-height: 100vh; position: relative; z-index: 1; }
+
+.sidebar {
+  width: 56px;
+  background: var(--mantle);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 16px 0;
+  position: fixed;
+  top: 0; left: 0; bottom: 0;
+  z-index: 10;
+}
+.sidebar::after {
+  content: '';
+  position: absolute;
+  right: 0; top: 0; bottom: 0;
+  width: 1px;
+  background: linear-gradient(180deg, transparent, var(--accent-glow), transparent);
+}
+
+.sidebar-logo {
+  font-family: var(--font);
+  font-weight: 700;
+  font-size: 9px;
+  color: var(--accent);
+  letter-spacing: 3px;
+  margin-bottom: 20px;
+  text-transform: uppercase;
+  position: relative;
+}
+.sidebar-logo::after {
+  content: '';
+  position: absolute;
+  bottom: -8px; left: -4px; right: -4px;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--accent), transparent);
+}
+
+.sidebar-nav { display: flex; flex-direction: column; gap: 2px; margin-top: 8px; }
+
+.sidebar-btn {
+  width: 38px; height: 34px;
+  border-radius: var(--radius);
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--overlay1);
+  cursor: pointer;
+  font-family: var(--font);
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 1px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all .2s;
+  position: relative;
+}
+.sidebar-btn:hover {
+  background: rgba(250, 179, 135, .05);
+  color: var(--text);
+  border-color: var(--border-glow);
+}
+.sidebar-btn.active {
+  background: rgba(250, 179, 135, .08);
+  color: var(--accent);
+  border-color: var(--accent);
+  box-shadow: 0 0 12px rgba(250, 179, 135, .1);
+}
+.sidebar-btn.active::before {
+  content: '';
+  position: absolute;
+  left: -10px;
+  width: 2px; height: 60%;
+  background: var(--accent);
+  box-shadow: 0 0 8px var(--accent-glow);
+}
+
+.main {
+  flex: 1;
+  margin-left: 56px;
+  padding: 24px 28px 48px;
+  max-width: 1440px;
+}
+
+/* ── Header ───────────────────────────────────────────────── */
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 24px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--border);
+  position: relative;
+}
+.header::after {
+  content: '';
+  position: absolute;
+  bottom: -1px; left: 0;
+  width: 120px; height: 1px;
+  background: linear-gradient(90deg, var(--accent), transparent);
+}
+
+.header-left {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+}
+
+.header h1 {
+  font-family: var(--font-ui);
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--text);
+  letter-spacing: 3px;
+  text-transform: uppercase;
+}
+.header h1 .glyph {
+  color: var(--accent);
+  font-size: 16px;
+  margin-right: 6px;
+  text-shadow: 0 0 16px var(--accent-glow);
+}
+.header h1 span { color: var(--accent); }
+.header-sub {
+  font-family: var(--font);
+  font-size: 10px;
+  color: var(--overlay0);
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+
+.conn-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font);
+  font-size: 10px;
+  color: var(--overlay1);
+  letter-spacing: 1px;
+}
+.conn-dot {
+  width: 6px; height: 6px;
+  border-radius: 0;
+  background: var(--red);
+  transition: background .3s;
+  box-shadow: 0 0 8px rgba(243, 139, 168, .5);
+}
+.conn-dot.ok {
+  background: var(--green);
+  box-shadow: 0 0 8px rgba(166, 227, 161, .5);
+  animation: conn-pulse 2s infinite;
+}
+@keyframes conn-pulse {
+  0%, 100% { box-shadow: 0 0 8px rgba(166, 227, 161, .3); }
+  50% { box-shadow: 0 0 16px rgba(166, 227, 161, .6); }
+}
+
+/* ── Machine Grid ─────────────────────────────────────────── */
+.machine-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(440px, 1fr));
+  gap: 16px;
+}
+
+.machine-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  position: relative;
+  transition: border-color .3s;
+}
+.machine-card:hover {
+  border-color: var(--border-glow);
+}
+/* Corner accent marks */
+.machine-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0;
+  width: 20px; height: 1px;
+  background: var(--accent);
+  opacity: .6;
+}
+.machine-card::after {
+  content: '';
+  position: absolute;
+  top: 0; left: 0;
+  width: 1px; height: 20px;
+  background: var(--accent);
+  opacity: .6;
+}
+
+.machine-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--border);
+  background: rgba(250, 179, 135, .02);
+}
+.machine-name {
+  font-family: var(--font);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text);
+  letter-spacing: 1px;
+}
+.machine-name::before {
+  content: '◆ ';
+  color: var(--accent);
+  font-size: 8px;
+  vertical-align: middle;
+}
+.machine-status {
+  font-family: var(--font);
+  font-size: 9px;
+  font-weight: 600;
+  padding: 2px 10px;
+  border-radius: var(--radius);
+  text-transform: uppercase;
+  letter-spacing: 2px;
+}
+.machine-status.online {
+  background: rgba(166, 227, 161, .08);
+  color: var(--green);
+  border: 1px solid rgba(166, 227, 161, .15);
+  box-shadow: 0 0 8px rgba(166, 227, 161, .05);
+}
+.machine-status.offline {
+  background: rgba(243, 139, 168, .08);
+  color: var(--red);
+  border: 1px solid rgba(243, 139, 168, .15);
+}
+.machine-status.error {
+  background: rgba(249, 226, 175, .08);
+  color: var(--yellow);
+  border: 1px solid rgba(249, 226, 175, .15);
+}
+
+.machine-body { padding: 12px 16px; }
+
+/* ── GPU Row ──────────────────────────────────────────────── */
+.gpu-section { margin-bottom: 10px; }
+.gpu-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 0;
+  border-bottom: 1px solid rgba(205, 214, 244, .04);
+}
+.gpu-row:last-child { border-bottom: none; }
+
+.gpu-label {
+  font-family: var(--font);
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--sapphire);
+  min-width: 56px;
+  flex-shrink: 0;
+  letter-spacing: 1px;
+}
+.gpu-label::before {
+  content: '▹ ';
+  color: var(--overlay0);
+  font-size: 8px;
+}
+.gpu-name {
+  font-family: var(--font);
+  font-size: 10px;
+  color: var(--overlay1);
+  min-width: 120px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.gpu-metrics {
+  display: flex;
+  gap: 14px;
+  flex: 1;
+  justify-content: flex-end;
+}
+.metric {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 48px;
+}
+.metric-val {
+  font-family: var(--font);
+  font-size: 13px;
+  font-weight: 700;
+}
+.metric-lbl {
+  font-family: var(--font);
+  font-size: 8px;
+  color: var(--overlay0);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-top: 2px;
+}
+
+/* Bars */
+.bar-wrap {
+  width: 100%;
+  height: 2px;
+  background: rgba(205, 214, 244, .06);
+  border-radius: 0;
+  margin-top: 4px;
+  overflow: hidden;
+}
+.bar-fill {
+  height: 100%;
+  border-radius: 0;
+  transition: width .5s;
+  position: relative;
+}
+
+/* Color coding — Catppuccin colors */
+.c-util  { color: var(--blue); }
+.c-temp  { color: var(--peach); }
+.c-mem   { color: var(--sapphire); }
+.c-power { color: var(--green); }
+.bg-util  { background: var(--blue); box-shadow: 0 0 8px rgba(137, 180, 250, .3); }
+.bg-temp  { background: var(--peach); box-shadow: 0 0 8px rgba(250, 179, 135, .3); }
+.bg-mem   { background: var(--sapphire); box-shadow: 0 0 8px rgba(116, 199, 236, .3); }
+.bg-power { background: var(--green); box-shadow: 0 0 8px rgba(166, 227, 161, .3); }
+.c-warn   { color: var(--yellow); }
+.c-danger { color: var(--red); text-shadow: 0 0 8px rgba(243, 139, 168, .4); }
+
+/* ── System Metrics Row ───────────────────────────────────── */
+.sys-row {
+  display: flex;
+  gap: 20px;
+  padding: 10px 0;
+  border-bottom: 1px solid rgba(205, 214, 244, .04);
+}
+.sys-metric { flex: 1; }
+.sys-metric-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 5px;
+}
+.sys-metric-lbl {
+  font-family: var(--font);
+  font-size: 9px;
+  color: var(--overlay0);
+  text-transform: uppercase;
+  letter-spacing: 2px;
+}
+.sys-metric-val {
+  font-family: var(--font);
+  font-size: 12px;
+  font-weight: 600;
+}
+.sys-bar {
+  width: 100%;
+  height: 2px;
+  background: rgba(205, 214, 244, .06);
+  border-radius: 0;
+}
+.sys-bar-fill {
+  height: 100%;
+  border-radius: 0;
+  transition: width .5s;
+}
+.sys-bar-fill.cpu {
+  background: var(--mauve);
+  box-shadow: 0 0 8px rgba(203, 166, 247, .3);
+}
+.sys-bar-fill.mem {
+  background: var(--sapphire);
+  box-shadow: 0 0 8px rgba(116, 199, 236, .3);
+}
+
+/* ── Tmux Section ─────────────────────────────────────────── */
+.tmux-section { margin-top: 10px; }
+.tmux-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  padding: 6px 0;
+  user-select: none;
+}
+.tmux-header-icon {
+  font-size: 8px;
+  color: var(--overlay0);
+  transition: transform .2s;
+  display: inline-block;
+}
+.tmux-header-icon.open { transform: rotate(90deg); }
+.tmux-header-label {
+  font-family: var(--font);
+  font-size: 9px;
+  color: var(--overlay0);
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  font-weight: 600;
+}
+.tmux-header-count {
+  font-family: var(--font);
+  font-size: 9px;
+  color: var(--overlay1);
+  background: rgba(205, 214, 244, .06);
+  padding: 1px 8px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+}
+.tmux-sessions { display: none; }
+.tmux-sessions.open { display: block; }
+
+.tmux-session {
+  margin-top: 6px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+.tmux-session-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  background: var(--bg-elev);
+  cursor: pointer;
+  user-select: none;
+  border-left: 2px solid var(--green);
+}
+.tmux-session-name {
+  font-family: var(--font);
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--green);
+}
+.tmux-session-info {
+  font-family: var(--font);
+  font-size: 10px;
+  color: var(--overlay1);
+}
+.tmux-attached {
+  font-family: var(--font);
+  font-size: 8px;
+  padding: 1px 6px;
+  border-radius: var(--radius);
+  background: rgba(166, 227, 161, .1);
+  color: var(--green);
+  font-weight: 600;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  border: 1px solid rgba(166, 227, 161, .15);
+}
+.tmux-windows { display: none; }
+.tmux-windows.open { display: block; }
+
+.tmux-window {
+  border-top: 1px solid var(--border);
+}
+.tmux-window-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 10px;
+  background: rgba(205, 214, 244, .01);
+  cursor: pointer;
+  user-select: none;
+}
+.tmux-window-idx {
+  font-family: var(--font);
+  font-size: 10px;
+  color: var(--overlay0);
+}
+.tmux-window-name {
+  font-family: var(--font);
+  font-size: 11px;
+  color: var(--subtext1);
+}
+.tmux-window-cmd {
+  font-family: var(--font);
+  font-size: 10px;
+  color: var(--mauve);
+  margin-left: auto;
+}
+.tmux-window-path {
+  font-family: var(--font);
+  font-size: 9px;
+  color: var(--overlay0);
+  max-width: 180px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  direction: rtl;
+  text-align: left;
+}
+
+.tmux-pane {
+  display: none;
+  background: var(--bg-term);
+  padding: 10px 12px;
+  max-height: 260px;
+  overflow: auto;
+  border-top: 1px solid rgba(250, 179, 135, .06);
+}
+.tmux-pane.open { display: block; }
+.tmux-pane pre {
+  font-family: var(--font);
+  font-size: 11px;
+  line-height: 1.5;
+  color: var(--subtext0);
+  white-space: pre-wrap;
+  word-break: break-all;
+  margin: 0;
+}
+
+/* ── Loading / Empty ──────────────────────────────────────── */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 80px 20px;
+  color: var(--overlay1);
+}
+.empty-state .glyph {
+  font-size: 24px;
+  color: var(--accent);
+  margin-bottom: 16px;
+  animation: glyph-pulse 2s ease-in-out infinite;
+  text-shadow: 0 0 20px var(--accent-glow);
+}
+@keyframes glyph-pulse {
+  0%, 100% { opacity: .4; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.1); }
+}
+.empty-state span {
+  font-family: var(--font);
+  font-size: 11px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+}
+
+/* ── Glitch Effect on Title ───────────────────────────────── */
+@keyframes glitch-skew {
+  0% { transform: skew(0deg); }
+  20% { transform: skew(-1deg); }
+  40% { transform: skew(0.5deg); }
+  60% { transform: skew(-0.3deg); }
+  80% { transform: skew(0.8deg); }
+  100% { transform: skew(0deg); }
+}
+
+.header h1 {
+  animation: glitch-skew 8s ease-in-out infinite alternate;
+}
+
+/* ── Status indicator bar at top ──────────────────────────── */
+.status-bar {
+  position: fixed;
+  top: 0; left: 56px; right: 0;
+  height: 1px;
+  background: linear-gradient(90deg,
+    var(--accent) 0%,
+    var(--mauve) 25%,
+    var(--sapphire) 50%,
+    var(--green) 75%,
+    var(--accent) 100%
+  );
+  background-size: 200% 100%;
+  animation: status-sweep 4s linear infinite;
+  z-index: 100;
+  opacity: .6;
+}
+@keyframes status-sweep {
+  0% { background-position: 0% 0; }
+  100% { background-position: 200% 0; }
+}
+
+/* ── Floating ambient particles (CSS only) ────────────────── */
+.particles {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  overflow: hidden;
+}
+.particle {
+  position: absolute;
+  width: 2px; height: 2px;
+  background: var(--accent);
+  border-radius: 0;
+  opacity: 0;
+  animation: float-up linear infinite;
+}
+@keyframes float-up {
+  0% { opacity: 0; transform: translateY(100vh) translateX(0); }
+  10% { opacity: .3; }
+  90% { opacity: .3; }
+  100% { opacity: 0; transform: translateY(-20px) translateX(30px); }
+}
+
+/* ── Footer status line ───────────────────────────────────── */
+.footer-status {
+  position: fixed;
+  bottom: 0; left: 56px; right: 0;
+  height: 28px;
+  background: var(--mantle);
+  border-top: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  padding: 0 16px;
+  gap: 16px;
+  font-family: var(--font);
+  font-size: 9px;
+  color: var(--overlay0);
+  letter-spacing: 1px;
+  z-index: 10;
+}
+.footer-status::before {
+  content: '';
+  position: absolute;
+  top: -1px; left: 0;
+  width: 60px; height: 1px;
+  background: linear-gradient(90deg, var(--accent), transparent);
+}
+.footer-tag {
+  color: var(--overlay1);
+  text-transform: uppercase;
+}
+.footer-tag .accent { color: var(--accent); }
+
+/* ── Responsive ───────────────────────────────────────────── */
+@media (max-width: 600px) {
+  .main { padding: 12px; margin-left: 44px; }
+  .sidebar { width: 44px; }
+  .machine-grid { grid-template-columns: 1fr; }
+  .gpu-metrics { gap: 6px; }
+  .metric { min-width: 38px; }
+  .metric-val { font-size: 11px; }
+  .footer-status { left: 44px; }
+  .status-bar { left: 44px; }
+}
+</style>
+</head>
+<body>
+
+<!-- Ambient particles -->
+<div class="particles" id="particles"></div>
+
+<!-- Status sweep bar -->
+<div class="status-bar"></div>
+
+<div class="app">
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">◈ 電脳</div>
+    <nav class="sidebar-nav" id="sidebar-nav">
+      <button class="sidebar-btn active" data-view="all" title="All machines" onclick="switchView('all')">ALL</button>
+    </nav>
+  </aside>
+
+  <!-- Main -->
+  <div class="main">
+    <div class="header">
+      <div class="header-left">
+        <h1><span class="glyph">◈</span>DEN<span>NOU</span></h1>
+        <span class="header-sub">電脳 neural grid monitor</span>
+      </div>
+      <div class="conn-status">
+        <div class="conn-dot" id="conn-dot"></div>
+        <span id="conn-label">LINKING…</span>
+      </div>
+    </div>
+
+    <div id="content">
+      <div class="empty-state">
+        <div class="glyph">◇</div>
+        <span>Awaiting telemetry…</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Footer status bar -->
+<div class="footer-status">
+  <span class="footer-tag"><span class="accent">◈</span> DENNOU 電脳 v1.0</span>
+  <span class="footer-tag" id="footer-machine-count">0 NODES</span>
+  <span class="footer-tag" id="footer-gpu-count">0 GPUS</span>
+  <span class="footer-tag" id="footer-time"></span>
+</div>
+
+<script>
+/* ── Particles ────────────────────────────────────────── */
+(function initParticles() {
+  const container = document.getElementById('particles');
+  for (let i = 0; i < 20; i++) {
+    const p = document.createElement('div');
+    p.className = 'particle';
+    p.style.left = Math.random() * 100 + '%';
+    p.style.animationDuration = (12 + Math.random() * 20) + 's';
+    p.style.animationDelay = (Math.random() * 15) + 's';
+    p.style.width = (1 + Math.random() * 2) + 'px';
+    p.style.height = p.style.width;
+    container.appendChild(p);
+  }
+})();
+
+/* ── Footer clock ─────────────────────────────────────── */
+function updateClock() {
+  const now = new Date();
+  const h = String(now.getHours()).padStart(2, '0');
+  const m = String(now.getMinutes()).padStart(2, '0');
+  const s = String(now.getSeconds()).padStart(2, '0');
+  document.getElementById('footer-time').textContent = h + ':' + m + ':' + s;
+}
+setInterval(updateClock, 1000);
+updateClock();
+
+/* ── State ─────────────────────────────────────────────── */
+let ws = null;
+let state = {};
+let currentView = 'all';
+let openTmux = {};
+let openWindows = {};
+
+/* ── WebSocket ─────────────────────────────────────────── */
+function connect() {
+  const proto = location.protocol === 'https:' ? 'wss:' : 'ws:';
+  ws = new WebSocket(proto + '//' + location.host + '/ws');
+
+  ws.onopen = () => {
+    document.getElementById('conn-dot').classList.add('ok');
+    document.getElementById('conn-label').textContent = 'LINKED';
+  };
+
+  ws.onclose = () => {
+    document.getElementById('conn-dot').classList.remove('ok');
+    document.getElementById('conn-label').textContent = 'RELINKING…';
+    setTimeout(connect, 2000);
+  };
+
+  ws.onerror = () => {
+    document.getElementById('conn-label').textContent = 'ERROR';
+  };
+
+  ws.onmessage = (e) => {
+    const data = JSON.parse(e.data);
+    state = data.machines || {};
+    render();
+    updateSidebar();
+    updateFooter();
+  };
+}
+connect();
+
+/* ── Footer stats ─────────────────────────────────────── */
+function updateFooter() {
+  const machines = Object.keys(state);
+  let gpuCount = 0;
+  machines.forEach(name => {
+    const d = state[name];
+    if (d && d.gpus) gpuCount += d.gpus.length;
+  });
+  document.getElementById('footer-machine-count').textContent = machines.length + ' NODE' + (machines.length !== 1 ? 'S' : '');
+  document.getElementById('footer-gpu-count').textContent = gpuCount + ' GPU' + (gpuCount !== 1 ? 'S' : '');
+}
+
+/* ── Sidebar ───────────────────────────────────────────── */
+function updateSidebar() {
+  const nav = document.getElementById('sidebar-nav');
+  const names = Object.keys(state);
+  const nameSet = new Set(names);
+
+  names.forEach(name => {
+    if (!nav.querySelector(`[data-view="${name}"]`)) {
+      const btn = document.createElement('button');
+      btn.className = 'sidebar-btn';
+      btn.dataset.view = name;
+      btn.title = name;
+      btn.textContent = name.length > 4 ? name.slice(0, 3).toUpperCase() : name.toUpperCase();
+      btn.onclick = () => switchView(name);
+      nav.appendChild(btn);
+    }
+  });
+
+  nav.querySelectorAll('.sidebar-btn').forEach(b => {
+    if (b.dataset.view !== 'all' && !nameSet.has(b.dataset.view)) b.remove();
+  });
+
+  nav.querySelectorAll('.sidebar-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.view === currentView);
+  });
+}
+
+function switchView(view) {
+  currentView = view;
+  document.querySelectorAll('.sidebar-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.view === view);
+  });
+  render();
+}
+
+/* ── Rendering ─────────────────────────────────────────── */
+function render() {
+  const container = document.getElementById('content');
+  const machines = currentView === 'all'
+    ? Object.entries(state)
+    : Object.entries(state).filter(([n]) => n === currentView);
+
+  if (machines.length === 0) {
+    container.innerHTML = '<div class="empty-state"><div class="glyph">◇</div><span>Awaiting telemetry…</span></div>';
+    return;
+  }
+
+  container.innerHTML = '<div class="machine-grid">' +
+    machines.map(([name, data]) => renderMachine(name, data)).join('') +
+    '</div>';
+}
+
+function renderMachine(name, data) {
+  const status = data.status || 'offline';
+
+  if (status !== 'online') {
+    return `<div class="machine-card">
+      <div class="machine-header">
+        <span class="machine-name">${esc(name)}</span>
+        <span class="machine-status ${status}">${status}</span>
+      </div>
+      <div class="machine-body">
+        <div style="padding:24px 0;text-align:center;color:var(--overlay0);font-family:var(--font);font-size:11px;letter-spacing:1px;">
+          ${status === 'offline' ? '◇ SSH LINK FAILED' : '◇ ' + esc(data.error || 'UNKNOWN ERROR')}
+        </div>
+      </div>
+    </div>`;
+  }
+
+  return `<div class="machine-card">
+    <div class="machine-header">
+      <span class="machine-name">${esc(name)}</span>
+      <span class="machine-status online">online</span>
+    </div>
+    <div class="machine-body">
+      ${renderGPUs(data.gpus || [])}
+      ${renderSystem(data.system || {})}
+      ${renderTmux(name, data.tmux || [])}
+    </div>
+  </div>`;
+}
+
+/* ── GPU ───────────────────────────────────────────────── */
+function renderGPUs(gpus) {
+  if (!gpus.length) return '<div style="padding:8px 0;font-family:var(--font);font-size:10px;color:var(--overlay0);letter-spacing:1px">▹ NO GPU DETECTED</div>';
+
+  return '<div class="gpu-section">' + gpus.map(g => {
+    const util = g.utilization ?? 0;
+    const temp = g.temperature ?? 0;
+    const memPct = g.memory_total ? Math.round(g.memory_used / g.memory_total * 100) : 0;
+    const memUsed = g.memory_used ? (g.memory_used / 1024).toFixed(1) : '0';
+    const memTotal = g.memory_total ? (g.memory_total / 1024).toFixed(1) : '0';
+    const power = g.power_draw ?? 0;
+    const powerLim = g.power_limit ?? 1;
+
+    const tempClass = temp >= 85 ? 'c-danger' : temp >= 70 ? 'c-warn' : 'c-temp';
+
+    return `<div class="gpu-row">
+      <span class="gpu-label">GPU ${g.index}</span>
+      <span class="gpu-name" title="${esc(g.name)}">${esc(g.name)}</span>
+      <div class="gpu-metrics">
+        <div class="metric">
+          <span class="metric-val c-util">${Math.round(util)}%</span>
+          <span class="metric-lbl">UTIL</span>
+          <div class="bar-wrap"><div class="bar-fill bg-util" style="width:${util}%"></div></div>
+        </div>
+        <div class="metric">
+          <span class="metric-val ${tempClass}">${Math.round(temp)}°</span>
+          <span class="metric-lbl">TEMP</span>
+        </div>
+        <div class="metric">
+          <span class="metric-val c-mem">${memPct}%</span>
+          <span class="metric-lbl">${memUsed}/${memTotal}G</span>
+          <div class="bar-wrap"><div class="bar-fill bg-mem" style="width:${memPct}%"></div></div>
+        </div>
+        <div class="metric">
+          <span class="metric-val c-power">${Math.round(power)}W</span>
+          <span class="metric-lbl">${Math.round(powerLim)}W</span>
+          <div class="bar-wrap"><div class="bar-fill bg-power" style="width:${powerLim ? (power/powerLim*100) : 0}%"></div></div>
+        </div>
+      </div>
+    </div>`;
+  }).join('') + '</div>';
+}
+
+/* ── System ────────────────────────────────────────────── */
+function renderSystem(sys) {
+  const cpuPct = sys.cpu_percent ?? null;
+  const memPct = sys.mem_percent ?? 0;
+  const memUsed = sys.mem_used ? (sys.mem_used / 1073741824).toFixed(1) : '?';
+  const memTotal = sys.mem_total ? (sys.mem_total / 1073741824).toFixed(1) : '?';
+  const cpuCount = sys.cpu_count ?? '?';
+  const load = sys.load_1 != null ? `${sys.load_1} / ${sys.load_5} / ${sys.load_15}` : '';
+
+  return `<div class="sys-row">
+    <div class="sys-metric">
+      <div class="sys-metric-header">
+        <span class="sys-metric-lbl">CPU (${cpuCount} cores)</span>
+        <span class="sys-metric-val" style="color:var(--mauve)">${cpuPct != null ? cpuPct + '%' : '…'}</span>
+      </div>
+      <div class="sys-bar"><div class="sys-bar-fill cpu" style="width:${cpuPct ?? 0}%"></div></div>
+      ${load ? `<div style="font-family:var(--font);font-size:9px;color:var(--overlay0);margin-top:4px;letter-spacing:1px">LOAD ${load}</div>` : ''}
+    </div>
+    <div class="sys-metric">
+      <div class="sys-metric-header">
+        <span class="sys-metric-lbl">RAM</span>
+        <span class="sys-metric-val" style="color:var(--sapphire)">${memPct}%</span>
+      </div>
+      <div class="sys-bar"><div class="sys-bar-fill mem" style="width:${memPct}%"></div></div>
+      <div style="font-family:var(--font);font-size:9px;color:var(--overlay0);margin-top:4px;letter-spacing:1px">${memUsed} / ${memTotal} GB</div>
+    </div>
+  </div>`;
+}
+
+/* ── Tmux ──────────────────────────────────────────────── */
+function renderTmux(machine, sessions) {
+  if (!sessions.length) return '';
+
+  const tmuxKey = machine;
+  const isOpen = openTmux[tmuxKey] !== false;
+
+  return `<div class="tmux-section">
+    <div class="tmux-header" data-toggle="tmux" data-key="${esc(tmuxKey)}">
+      <span class="tmux-header-icon ${isOpen ? 'open' : ''}">▶</span>
+      <span class="tmux-header-label">tmux sessions</span>
+      <span class="tmux-header-count">${sessions.length}</span>
+    </div>
+    <div class="tmux-sessions ${isOpen ? 'open' : ''}">
+      ${sessions.map(s => renderTmuxSession(machine, s)).join('')}
+    </div>
+  </div>`;
+}
+
+function renderTmuxSession(machine, session) {
+  const sessKey = machine + ':' + session.name;
+  const isOpen = openWindows[sessKey] !== false;
+
+  return `<div class="tmux-session">
+    <div class="tmux-session-header" data-toggle="session" data-key="${esc(sessKey)}">
+      <span class="tmux-session-name">${esc(session.name)}</span>
+      <span class="tmux-session-info">${session.window_count} window${session.window_count !== 1 ? 's' : ''}</span>
+      ${session.attached ? '<span class="tmux-attached">ATTACHED</span>' : ''}
+    </div>
+    <div class="tmux-windows ${isOpen ? 'open' : ''}">
+      ${(session.windows || []).map(w => renderTmuxWindow(machine, session.name, w)).join('')}
+    </div>
+  </div>`;
+}
+
+function renderTmuxWindow(machine, sessionName, win) {
+  const winKey = machine + ':' + sessionName + ':' + win.index;
+  const isOpen = openWindows[winKey] === true;
+
+  return `<div class="tmux-window">
+    <div class="tmux-window-header" data-toggle="pane" data-key="${esc(winKey)}">
+      <span class="tmux-window-idx">${win.index}:</span>
+      <span class="tmux-window-name">${esc(win.name)}</span>
+      <span class="tmux-window-path">${esc(win.path || '')}</span>
+      <span class="tmux-window-cmd">${esc(win.command || '')}</span>
+    </div>
+    <div class="tmux-pane ${isOpen ? 'open' : ''}">
+      <pre>${esc(win.content || '')}</pre>
+    </div>
+  </div>`;
+}
+
+/* ── Toggle helpers ────────────────────────────────────── */
+document.addEventListener('click', e => {
+  const el = e.target.closest('[data-toggle]');
+  if (!el) return;
+  const kind = el.dataset.toggle;
+  const key = el.dataset.key;
+  if (kind === 'tmux') {
+    openTmux[key] = openTmux[key] === false ? true : false;
+  } else if (kind === 'session') {
+    openWindows[key] = openWindows[key] === false ? true : false;
+  } else if (kind === 'pane') {
+    openWindows[key] = !openWindows[key];
+  }
+  render();
+});
+
+/* ── Utilities ─────────────────────────────────────────── */
+function esc(s) {
+  if (s == null) return '';
+  const d = document.createElement('div');
+  d.textContent = String(s);
+  return d.innerHTML;
+}
+
+/* Keyboard shortcut: 1-9 to switch machines, 0 for all */
+document.addEventListener('keydown', e => {
+  if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+  const names = Object.keys(state);
+  if (e.key === '0' || e.key === '`') { switchView('all'); }
+  else if (e.key >= '1' && e.key <= '9') {
+    const idx = parseInt(e.key) - 1;
+    if (names[idx]) switchView(names[idx]);
+  }
+});
+</script>
+</body>
+</html>

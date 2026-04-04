@@ -1,0 +1,18 @@
+# dennou configuration
+# Copy this file to config.yaml and edit with your machines.
+# SSH keys must be set up for passwordless access.
+
+machines:
+  my-server:
+    host: 192.168.1.100   # hostname, IP, or ~/.ssh/config alias
+    user: myuser           # optional, defaults to current user
+    # port: 22             # optional, defaults to 22
+
+  another-server:
+    host: gpu-node-2
+
+settings:
+  poll_interval: 3         # seconds between SSH polls
+  tmux_capture_lines: 25   # lines to capture from each tmux pane
+  port: 1312               # web dashboard port
+  host: 0.0.0.0            # listen address
