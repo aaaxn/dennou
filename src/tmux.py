@@ -1,14 +1,16 @@
 """Tmux session collector — sessions, windows, and pane content."""
 
+import secrets
+
 from dennou.ssh import run
 
 _TMUX_BATCH_CMD = r"""
-tmux list-sessions -F '#{session_name}	#{session_attached}	#{session_windows}' 2>/dev/null || exit 0
-echo '---TMUX_WINDOWS---'
-tmux list-windows -a -F '#{session_name}	#{window_index}	#{window_name}	#{window_active}	#{pane_current_command}	#{pane_current_path}' 2>/dev/null || true
-echo '---TMUX_PANES---'
-for target in $(tmux list-windows -a -F '#{session_name}:#{window_index}' 2>/dev/null); do
-  echo "===PANE:${target}==="
+tmux list-sessions -F '#{{session_name}}	#{{session_attached}}	#{{session_windows}}' 2>/dev/null || exit 0
+echo '{win_sep}'
+tmux list-windows -a -F '#{{session_name}}	#{{window_index}}	#{{window_name}}	#{{window_active}}	#{{pane_current_command}}	#{{pane_current_path}}' 2>/dev/null || true
+echo '{pane_sep}'
+for target in $(tmux list-windows -a -F '#{{session_name}}:#{{window_index}}' 2>/dev/null); do
+  echo "{pane_prefix}${{target}}{pane_suffix}"
   tmux capture-pane -t "$target" -p -S -__LINES__ 2>/dev/null || true
 done
 """
@@ -16,17 +18,27 @@ done
 
 async def collect(conn, capture_lines: int = 25) -> list[dict]:
     """Collect all tmux sessions, windows, and pane content."""
-    cmd = _TMUX_BATCH_CMD.replace("__LINES__", str(capture_lines))
+    token = secrets.token_hex(8)
+    win_sep = f"---TMUX_WINDOWS_{token}---"
+    pane_sep = f"---TMUX_PANES_{token}---"
+    pane_prefix = f"===PANE_{token}:"
+    pane_suffix = f"==="
+    cmd = _TMUX_BATCH_CMD.format(
+        win_sep=win_sep,
+        pane_sep=pane_sep,
+        pane_prefix=pane_prefix,
+        pane_suffix=pane_suffix,
+    ).replace("__LINES__", str(capture_lines))
     raw = await run(conn, cmd, timeout=15)
     if not raw:
         return []
 
     # Split into sections
-    sections = raw.split("---TMUX_WINDOWS---")
+    sections = raw.split(win_sep)
     if len(sections) < 2:
         return []
     session_block = sections[0]
-    rest = sections[1].split("---TMUX_PANES---")
+    rest = sections[1].split(pane_sep)
     window_block = rest[0] if rest else ""
     pane_block = rest[1] if len(rest) > 1 else ""
 
@@ -63,14 +75,14 @@ async def collect(conn, capture_lines: int = 25) -> list[dict]:
             session_map[sess_name]["windows"].append(win)
 
     # Parse pane captures
-    for chunk in pane_block.split("===PANE:"):
+    for chunk in pane_block.split(pane_prefix):
         if not chunk.strip():
             continue
-        header_end = chunk.find("===")
+        header_end = chunk.find(pane_suffix)
         if header_end == -1:
             continue
         target = chunk[:header_end]
-        content_start = header_end + 3
+        content_start = header_end + len(pane_suffix)
         if content_start < len(chunk) and chunk[content_start] == "\n":
             content_start += 1
         content = chunk[content_start:]

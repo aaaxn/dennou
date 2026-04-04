@@ -93,6 +93,10 @@ web/
 
 Maintains persistent SSH connections via `asyncssh` and runs all collectors concurrently per machine.
 
+## Inspiration
+
+Inspired by [gpu-hot](https://github.com/psalias2006/gpu-hot).
+
 ## License
 
 MIT

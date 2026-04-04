@@ -848,7 +848,7 @@ function updateSidebar() {
   const nameSet = new Set(names);
 
   names.forEach(name => {
-    if (!nav.querySelector(`[data-view="${name}"]`)) {
+    if (!nav.querySelector(`[data-view="${cssEsc(name)}"]`)) {
       const btn = document.createElement('button');
       btn.className = 'sidebar-btn';
       btn.dataset.view = name;
@@ -901,7 +901,7 @@ function render() {
 
   machines.forEach(([name, data]) => {
     const html = renderMachine(name, data);
-    const existing = grid.querySelector(`.machine-card[data-machine="${name}"]`);
+    const existing = grid.querySelector(`.machine-card[data-machine="${cssEsc(name)}"]`);
     if (existing) {
       // Preserve open tmux pane state by only updating if content changed
       if (existing._lastHtml !== html) {
@@ -917,23 +917,23 @@ function render() {
         });
 
         existing.outerHTML = html;
-        const updated = grid.querySelector(`.machine-card[data-machine="${name}"]`);
+        const updated = grid.querySelector(`.machine-card[data-machine="${cssEsc(name)}"]`);
         updated._lastHtml = html;
 
         // Restore open state
         openSessions.forEach(key => {
-          const wins = updated.querySelector(`.tmux-windows[data-session="${key}"]`) ||
-                       updated.querySelector(`[data-key="${key}"]`)?.nextElementSibling;
+          const wins = updated.querySelector(`.tmux-windows[data-session="${cssEsc(key)}"]`) ||
+                       updated.querySelector(`[data-key="${cssEsc(key)}"]`)?.nextElementSibling;
           if (wins) wins.classList.add('open');
         });
         openPanes.forEach(key => {
-          const hdr = updated.querySelector(`[data-key="${key}"]`);
+          const hdr = updated.querySelector(`[data-key="${cssEsc(key)}"]`);
           if (hdr?.nextElementSibling) hdr.nextElementSibling.classList.add('open');
         });
       }
     } else {
       grid.insertAdjacentHTML('beforeend', html);
-      const inserted = grid.querySelector(`.machine-card[data-machine="${name}"]`);
+      const inserted = grid.querySelector(`.machine-card[data-machine="${cssEsc(name)}"]`);
       if (inserted) inserted._lastHtml = html;
     }
   });
@@ -1104,6 +1104,10 @@ document.addEventListener('click', e => {
   }
   render();
 });
+
+function cssEsc(s) {
+  return CSS.escape(String(s));
+}
 
 function esc(s) {
   if (s == null) return '';
