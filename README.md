@@ -61,7 +61,7 @@ settings:
   poll_interval: 3        # seconds between polls
   tmux_capture_lines: 25  # lines captured from each tmux pane
   port: 1312              # dashboard port
-  host: 0.0.0.0           # listen address
+  host: 127.0.0.1         # listen address
 ```
 
 The `host` field accepts hostnames from `~/.ssh/config`, IPs, or DNS names.
@@ -79,7 +79,7 @@ ssh my-server nvidia-smi  # test
 ## Architecture
 
 ```
-dennou/
+src/
   __main__.py       Entry point (python -m dennou)
   server.py         FastAPI server + WebSocket real-time loop
   config.py         YAML config loader
