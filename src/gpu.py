@@ -1,6 +1,6 @@
 """GPU metrics collector via nvidia-smi."""
 
-from dennou.ssh import run
+from .ssh import run
 
 _GPU_QUERY = (
     "index,name,temperature.gpu,utilization.gpu,utilization.memory,"

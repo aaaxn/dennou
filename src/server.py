@@ -10,8 +10,8 @@ from pathlib import Path
 from fastapi import FastAPI, WebSocket
 from fastapi.responses import HTMLResponse
 
-from dennou.ssh import get_conn, drop_conn, close_all, ConnectionDead
-from dennou import gpu, system, tmux
+from .ssh import get_conn, drop_conn, close_all, ConnectionDead
+from . import gpu, system, tmux
 
 logging.basicConfig(
     level=logging.INFO,
@@ -29,10 +29,15 @@ def init(config: dict):
     """Initialise module with loaded config."""
     global cfg
     cfg = config
-    logger.info(f"Monitoring {len(cfg['machines'])} machine(s): {list(cfg['machines'].keys())}")
+    _load_template()
+    logger.info(
+        f"Monitoring {len(cfg['machines'])} machine(s): {list(cfg['machines'].keys())}"
+    )
 
 
-async def collect_machine(machine_name: str, machine_cfg: dict, tmux_lines: int = 25) -> dict:
+async def collect_machine(
+    machine_name: str, machine_cfg: dict, tmux_lines: int = 25
+) -> dict:
     """Collect all metrics from a single machine."""
     conn = await get_conn(machine_name, machine_cfg)
     if conn is None:
@@ -71,10 +76,13 @@ async def collect_machine(machine_name: str, machine_cfg: dict, tmux_lines: int 
 clients: set[WebSocket] = set()
 _poll_task: asyncio.Task | None = None
 _has_clients = asyncio.Event()
+_last_message: str = ""
+_last_snapshot: str = ""
 
 
 async def poll_loop():
     """Background loop: SSH-poll every machine, broadcast to WS clients."""
+    global _last_message, _last_snapshot
     interval = cfg["poll_interval"]
     tmux_lines = cfg["tmux_capture_lines"]
 
@@ -95,7 +103,21 @@ async def poll_loop():
             else:
                 payload[name] = result
 
+        snapshot_payload = {}
+        for name, machine in payload.items():
+            if "timestamp" not in machine:
+                snapshot_payload[name] = machine
+                continue
+            snapshot_payload[name] = {
+                key: value for key, value in machine.items() if key != "timestamp"
+            }
+
         message = json.dumps({"machines": payload})
+        snapshot = json.dumps({"machines": snapshot_payload})
+
+        if snapshot == _last_snapshot:
+            await asyncio.sleep(interval)
+            continue
 
         async def _send(ws: WebSocket) -> WebSocket | None:
             try:
@@ -103,6 +125,9 @@ async def poll_loop():
                 return None
             except Exception:
                 return ws
+
+        _last_message = message
+        _last_snapshot = snapshot
 
         dead_results = await asyncio.gather(*[_send(ws) for ws in clients])
         dead = {ws for ws in dead_results if ws is not None}
@@ -138,16 +163,27 @@ async def lifespan(app):
         _poll_task.cancel()
     await close_all()
     system.clear_state()
+    global _last_message, _last_snapshot
+    _last_message = ""
+    _last_snapshot = ""
 
 
 app = FastAPI(title="dennou", lifespan=lifespan)
 
-TEMPLATE = Path(__file__).parent.parent / "web" / "index.html"
+_TEMPLATE_PATH = Path(__file__).parent.parent / "web" / "index.html"
+_template_html: str = ""
+
+
+def _load_template():
+    global _template_html
+    _template_html = _TEMPLATE_PATH.read_text()
 
 
 @app.get("/")
 async def index():
-    return HTMLResponse(TEMPLATE.read_text())
+    if not _template_html:
+        _load_template()
+    return HTMLResponse(_template_html)
 
 
 @app.websocket("/ws")
@@ -158,6 +194,8 @@ async def ws_endpoint(websocket: WebSocket):
     _ensure_poll_loop()
 
     try:
+        if _last_message:
+            await websocket.send_text(_last_message)
         while True:
             await websocket.receive_text()
     except Exception:

@@ -1,6 +1,6 @@
 """System metrics collector — CPU, RAM, load average, uptime."""
 
-from dennou.ssh import run
+from .ssh import run
 
 _SYS_CMD = r"""
 echo "---LOADAVG---"; cat /proc/loadavg 2>/dev/null;

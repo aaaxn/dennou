@@ -3,7 +3,7 @@
 import sys
 import uvicorn
 
-from dennou.config import load_config
+from .config import load_config
 
 
 def main():
@@ -16,7 +16,7 @@ def main():
         print(f"Error loading config.yaml: {e}", file=sys.stderr)
         sys.exit(1)
 
-    from dennou.server import app, init
+    from .server import app, init
     init(cfg)
     uvicorn.run(app, host=cfg["host"], port=cfg["port"], log_level="info")
 

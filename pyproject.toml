@@ -11,8 +11,13 @@ dependencies = [
     "websockets>=16.0",
 ]
 
-[tool.setuptools.package-dir]
-dennou = "src"
+[tool.ty.environment]
+python-version = "3.12"
 
-[project.scripts]
-dennou = "dennou.__main__:main"
+[tool.ty.rules]
+unresolved-import = "warn"
+
+[dependency-groups]
+dev = [
+    "ty>=0.0.28",
+]

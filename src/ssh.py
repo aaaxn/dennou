@@ -15,7 +15,9 @@ class ConnectionDead(Exception):
     """Raised when a command fails due to a broken connection."""
 
 
-async def get_conn(machine_name: str, machine_cfg: dict) -> asyncssh.SSHClientConnection | None:
+async def get_conn(
+    machine_name: str, machine_cfg: dict
+) -> asyncssh.SSHClientConnection | None:
     """Return a cached SSH connection, reconnecting if needed."""
     lock = _conn_locks.setdefault(machine_name, asyncio.Lock())
 
@@ -41,25 +43,37 @@ async def get_conn(machine_name: str, machine_cfg: dict) -> asyncssh.SSHClientCo
             return None
 
 
+async def _close_conn(conn: asyncssh.SSHClientConnection):
+    """Close a single SSH connection, ignoring errors."""
+    try:
+        conn.close()
+        await conn.wait_closed()
+    except Exception:
+        pass
+
+
 async def drop_conn(machine_name: str):
     """Drop a dead connection so the next poll reconnects."""
     conn = _connections.pop(machine_name, None)
     if conn:
-        try:
-            conn.close()
-            await conn.wait_closed()
-        except Exception:
-            pass
+        await _close_conn(conn)
 
 
-async def run(conn: asyncssh.SSHClientConnection, cmd: str, timeout: float = 8) -> str | None:
+async def run(
+    conn: asyncssh.SSHClientConnection, cmd: str, timeout: float = 8
+) -> str | None:
     """Run a command over an existing connection. Raises ConnectionDead on transport errors."""
     try:
         result = await asyncio.wait_for(conn.run(cmd, check=False), timeout=timeout)
-        if result.exit_status == 0:
+        if result.exit_status == 0 and isinstance(result.stdout, str):
             return result.stdout.strip()
         return None
-    except (asyncssh.ConnectionLost, asyncssh.DisconnectError, BrokenPipeError, ConnectionResetError):
+    except (
+        asyncssh.ConnectionLost,
+        asyncssh.DisconnectError,
+        BrokenPipeError,
+        ConnectionResetError,
+    ):
         raise ConnectionDead()
     except (asyncio.TimeoutError, TimeoutError):
         return None
@@ -69,11 +83,7 @@ async def run(conn: asyncssh.SSHClientConnection, cmd: str, timeout: float = 8) 
 
 async def close_all():
     """Gracefully close all SSH connections."""
-    for name, conn in list(_connections.items()):
-        try:
-            conn.close()
-            await conn.wait_closed()
-        except Exception:
-            pass
+    for conn in list(_connections.values()):
+        await _close_conn(conn)
     _connections.clear()
     _conn_locks.clear()

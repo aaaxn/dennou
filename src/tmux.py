@@ -2,7 +2,7 @@
 
 import secrets
 
-from dennou.ssh import run
+from .ssh import run
 
 _TMUX_BATCH_CMD = r"""
 tmux list-sessions -F '#{{session_name}}	#{{session_attached}}	#{{session_windows}}' 2>/dev/null || exit 0
@@ -11,7 +11,7 @@ tmux list-windows -a -F '#{{session_name}}	#{{window_index}}	#{{window_name}}	#{
 echo '{pane_sep}'
 for target in $(tmux list-windows -a -F '#{{session_name}}:#{{window_index}}' 2>/dev/null); do
   echo "{pane_prefix}${{target}}{pane_suffix}"
-  tmux capture-pane -t "$target" -p -S -__LINES__ 2>/dev/null || true
+  tmux capture-pane -t "$target" -p -S -{capture_lines} 2>/dev/null || true
 done
 """
 
@@ -22,13 +22,14 @@ async def collect(conn, capture_lines: int = 25) -> list[dict]:
     win_sep = f"---TMUX_WINDOWS_{token}---"
     pane_sep = f"---TMUX_PANES_{token}---"
     pane_prefix = f"===PANE_{token}:"
-    pane_suffix = f"==="
+    pane_suffix = "==="
     cmd = _TMUX_BATCH_CMD.format(
         win_sep=win_sep,
         pane_sep=pane_sep,
         pane_prefix=pane_prefix,
         pane_suffix=pane_suffix,
-    ).replace("__LINES__", str(capture_lines))
+        capture_lines=capture_lines,
+    )
     raw = await run(conn, cmd, timeout=15)
     if not raw:
         return []

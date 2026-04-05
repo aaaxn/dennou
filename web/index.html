@@ -795,8 +795,7 @@ updateClock();
 let ws = null;
 let state = {};
 let currentView = 'all';
-let openTmux = {};
-let openWindows = {};
+let toggleState = {};
 
 function connect() {
   const proto = location.protocol === 'https:' ? 'wss:' : 'ws:';
@@ -861,10 +860,7 @@ function updateSidebar() {
 
   nav.querySelectorAll('.sidebar-btn').forEach(b => {
     if (b.dataset.view !== 'all' && !nameSet.has(b.dataset.view)) b.remove();
-  });
-
-  nav.querySelectorAll('.sidebar-btn').forEach(b => {
-    b.classList.toggle('active', b.dataset.view === currentView);
+    else b.classList.toggle('active', b.dataset.view === currentView);
   });
 }
 
@@ -903,7 +899,6 @@ function render() {
     const html = renderMachine(name, data);
     const existing = grid.querySelector(`.machine-card[data-machine="${cssEsc(name)}"]`);
     if (existing) {
-      // Preserve open tmux pane state by only updating if content changed
       if (existing._lastHtml !== html) {
         const openPanes = new Set();
         existing.querySelectorAll('.tmux-pane.open').forEach(p => {
@@ -920,7 +915,6 @@ function render() {
         const updated = grid.querySelector(`.machine-card[data-machine="${cssEsc(name)}"]`);
         updated._lastHtml = html;
 
-        // Restore open state
         openSessions.forEach(key => {
           const wins = updated.querySelector(`.tmux-windows[data-session="${cssEsc(key)}"]`) ||
                        updated.querySelector(`[data-key="${cssEsc(key)}"]`)?.nextElementSibling;
@@ -1043,7 +1037,7 @@ function renderTmux(machine, sessions) {
   if (!sessions.length) return '';
 
   const tmuxKey = machine;
-  const isOpen = openTmux[tmuxKey] !== false;
+  const isOpen = toggleState[tmuxKey] !== false;
 
   return `<div class="tmux-section">
     <div class="tmux-header" data-toggle="tmux" data-key="${esc(tmuxKey)}">
@@ -1059,7 +1053,7 @@ function renderTmux(machine, sessions) {
 
 function renderTmuxSession(machine, session) {
   const sessKey = machine + ':' + session.name;
-  const isOpen = openWindows[sessKey] !== false;
+  const isOpen = toggleState[sessKey] !== false;
 
   return `<div class="tmux-session">
     <div class="tmux-session-header" data-toggle="session" data-key="${esc(sessKey)}">
@@ -1075,7 +1069,7 @@ function renderTmuxSession(machine, session) {
 
 function renderTmuxWindow(machine, sessionName, win) {
   const winKey = machine + ':' + sessionName + ':' + win.index;
-  const isOpen = openWindows[winKey] === true;
+  const isOpen = toggleState[winKey] === true;
 
   return `<div class="tmux-window">
     <div class="tmux-window-header" data-toggle="pane" data-key="${esc(winKey)}">
@@ -1095,13 +1089,9 @@ document.addEventListener('click', e => {
   if (!el) return;
   const kind = el.dataset.toggle;
   const key = el.dataset.key;
-  if (kind === 'tmux') {
-    openTmux[key] = openTmux[key] === false ? true : false;
-  } else if (kind === 'session') {
-    openWindows[key] = openWindows[key] === false ? true : false;
-  } else if (kind === 'pane') {
-    openWindows[key] = !openWindows[key];
-  }
+  const defaultOpen = kind === 'tmux' || kind === 'session';
+  const cur = toggleState[key];
+  toggleState[key] = cur === undefined ? !defaultOpen : !cur;
   render();
 });
 

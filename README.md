@@ -30,15 +30,12 @@ Requires Python 3.12+ and [uv](https://docs.astral.sh/uv/).
 ```bash
 git clone https://github.com/aaaxn/dennou.git && cd dennou
 
-# Install dependencies
-uv sync
-
 # Create your config
 cp config.yaml.example config.yaml
 vim config.yaml  # add your machines
 
-# Run
-uv run python -m dennou
+# Run (uv installs dependencies automatically)
+uv run app.py
 ```
 
 Open **http://localhost:1312**
@@ -79,8 +76,9 @@ ssh my-server nvidia-smi  # test
 ## Architecture
 
 ```
+app.py              Entry point (uv run app.py)
 src/
-  __main__.py       Entry point (python -m dennou)
+  __main__.py       CLI bootstrap
   server.py         FastAPI server + WebSocket real-time loop
   config.py         YAML config loader
   ssh.py            SSH connection pool + command runner
